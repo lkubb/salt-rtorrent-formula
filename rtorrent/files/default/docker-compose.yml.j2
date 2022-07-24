@@ -1,0 +1,48 @@
+---
+version: '2.1'
+services:
+  rtorrent:
+    image: {{ rtorrent.lookup.containers.rtorrent.image }}
+    hostname: rtorrent
+    volumes:
+      - {{ rtorrent.lookup.paths.data }}:/config:rw,nodev,noexec,nosuid
+{%- if rtorrent.lookup.paths.downloads is mapping %}
+      - {{ rtorrent.lookup.paths.downloads | first }}:{{ rtorrent.lookup.paths.downloads.values() | first }}:rw,nodev,noexec,nosuid
+{%- else %}
+      - {{ rtorrent.lookup.paths.downloads }}:/downloads:rw,nodev,noexec,nosuid
+{%- endif %}
+      # @TODO
+      - {{ rtorrent.lookup.paths.watch }}:/watch
+    user: {{ rtorrent.container.puid or salt["user.info"](rtorrent.lookup.user.name).uid }}:{{ rtorrent.container.pgid or salt["user.info"](rtorrent.lookup.user.name).gid }}
+    env_file:
+      - {{ rtorrent.lookup.paths.config_rtorrent }}
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}
+      - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}/udp
+  flood:
+    image: {{ rtorrent.lookup.containers.flood.image }}
+    hostname: flood
+    volumes:
+      - {{ rtorrent.lookup.paths.data }}:/config:rw,nodev,noexec,nosuid
+{%- if rtorrent.lookup.paths.downloads is mapping %}
+      - {{ rtorrent.lookup.paths.downloads | first }}:{{ rtorrent.lookup.paths.downloads.values() | first }}:rw,nodev,noexec,nosuid
+{%- else %}
+      - {{ rtorrent.lookup.paths.downloads }}:/downloads:rw,nodev,noexec,nosuid
+{%- endif %}
+    user: {{ rtorrent.container.puid or salt["user.info"](rtorrent.lookup.user.name).uid }}:{{ rtorrent.container.pgid or salt["user.info"](rtorrent.lookup.user.name).gid }}
+    depends_on:
+      - rtorrent
+    env_file:
+      - {{ rtorrent.lookup.paths.config_flood }}
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - {{ rtorrent.flood.port }}:{{ rtorrent.flood.port }}

@@ -1,0 +1,90 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+#
+# Set default values.
+---
+values:
+  lookup:
+    rootgroup: root
+    compose:
+      create_pod: null
+      pod_args: null
+      project_name: rtorrent
+      remove_orphans: true
+      service:
+        container_prefix: null
+        ephemeral: true
+        pod_prefix: null
+        restart_policy: on-failure
+        separator: null
+        stop_timeout: null
+    paths:
+      base: /opt/containers/rtorrent
+      compose: docker-compose.yml
+      config_rtorrent: rtorrent.env
+      config_flood: flood.env
+      data: data
+      downloads: downloads
+      watch: watch
+    user:
+      groups: []
+      home: null
+      name: rtorrent
+      shell: /usr/sbin/nologin
+      uid: null
+      gid: null
+    containers:
+      flood:
+        image: docker.io/jesec/flood:latest
+      rtorrent:
+        image: docker.io/jesec/rtorrent:latest
+    media_group:
+      gid: 3414
+      name: mediarr
+  install:
+    rootless: true
+    remove_all_data_for_sure: false
+  config:
+    dht_mode: auto
+    dht_port: 49999
+    max_dl_slots: 20
+    max_dl_slots_gl: 100
+    max_peers_dl: 100
+    max_peers_seed: 50
+    max_ul_slots: 20
+    max_ul_slots_gl: 100
+    max_xmlrpc: 10M
+    min_peers_dl: 1
+    min_peers_seed: 1
+    peer_exchange: true
+    port: 49999
+    trackers_udp: true
+    umask: '0002'
+    unix_socket: true
+  container:
+    pgid: null
+    puid: null
+    userns_keep_id: true
+  flood:
+    allowedpath: null
+    assets: null
+    auth: null
+    baseuri: null
+    clientpoll: null
+    clientpollidle: null
+    dbclean: null
+    host: null
+    maxhistorystates: null
+    port: 7004
+    rthost: null
+    rtport: null
+    rtsocket: /config/.local/share/rtorrent/rtorrent.sock
+    rundir: null
+    secret: null
+    ssl: null
+    sslcert: null
+    sslkey: null
+  # Just here for testing
+  added_in_defaults: defaults_value
+  winner: defaults
+...

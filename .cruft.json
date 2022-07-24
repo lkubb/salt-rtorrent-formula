@@ -1,0 +1,92 @@
+{
+  "template": "https://github.com/lkubb/salt-template-formula-compose",
+  "commit": "11726f9b646206ac59b1a8c04459ba61b139766a",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "_extensions": [
+        "local_extensions.YAMLDumper"
+      ],
+      "_jinja2_env_vars": {
+        "block_start_string": "{!",
+        "block_end_string": "!}",
+        "variable_start_string": "{=",
+        "variable_end_string": "=}",
+        "comment_start_string": "{@",
+        "comment_end_string": "@}"
+      },
+      "name": "rTorrent",
+      "abbr": "rtorrent",
+      "abbr_pysafe": "rtorrent",
+      "project_name": "rtorrent",
+      "containers": "rtorrent,flood",
+      "git_username": "lkubb",
+      "_lookup": {
+        "containers": {
+          "flood": {
+            "image": "docker.io/jesec/flood:latest"
+          },
+          "rtorrent": {
+            "image": "docker.io/jesec/rtorrent:latest"
+          }
+        },
+        "media_group": {
+          "gid": 3414,
+          "name": "mediarr"
+        },
+        "paths": {
+          "data": "data",
+          "downloads": "downloads",
+          "watch": "watch"
+        }
+      },
+      "_settings": {
+        "config": {
+          "port": 49999,
+          "umask": "0002",
+          "trackers_udp": true,
+          "dht_mode": "auto",
+          "dht_port": 49999,
+          "peer_exchange": true,
+          "min_peers_dl": 1,
+          "max_peers_dl": 100,
+          "min_peers_seed": 1,
+          "max_peers_seed": 50,
+          "max_dl_slots": 20,
+          "max_ul_slots": 20,
+          "max_dl_slots_gl": 100,
+          "max_ul_slots_gl": 100,
+          "max_xmlrpc": "10M",
+          "unix_socket": true
+        },
+        "container": {
+          "userns_keep_id": true,
+          "pgid": null,
+          "puid": null
+        },
+        "flood": {
+          "baseuri": null,
+          "dbclean": null,
+          "rundir": null,
+          "auth": null,
+          "host": null,
+          "port": 7004,
+          "maxhistorystates": null,
+          "clientpoll": null,
+          "clientpollidle": null,
+          "secret": null,
+          "ssl": null,
+          "sslkey": null,
+          "sslcert": null,
+          "allowedpath": null,
+          "assets": null,
+          "rthost": null,
+          "rtport": null,
+          "rtsocket": "/config/.local/share/rtorrent/rtorrent.sock"
+        }
+      },
+      "_template": "https://github.com/lkubb/salt-template-formula-compose"
+    }
+  },
+  "directory": null
+}

@@ -1,0 +1,173 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+# yamllint disable rule:comments-indentation
+---
+rtorrent:
+  install:
+      # Install rootless containers running as dedicated user.
+    rootless: true
+      # When applying `clean` states, also remove application data.
+      # Setting this to true might incur accidental data loss!
+    remove_all_data_for_sure: false
+  config:
+    dht_mode: auto
+    dht_port: 49999
+    max_dl_slots: 20
+    max_dl_slots_gl: 100
+    max_peers_dl: 100
+    max_peers_seed: 50
+    max_ul_slots: 20
+    max_ul_slots_gl: 100
+    max_xmlrpc: 10M
+    min_peers_dl: 1
+    min_peers_seed: 1
+    peer_exchange: true
+    port: 49999
+    trackers_udp: true
+    umask: '0002'
+    unix_socket: true
+  container:
+    pgid: null
+    puid: null
+    userns_keep_id: true
+  flood:
+      # Allowed path for file operations. This formula currently hardcodes the default
+      # download path inside the containers to `/downloads/rtorrent`.
+      # default: undefined (all are allowed), although this formula
+      # automatically sets this to the single configured download location if undefined.
+    allowedpath: null
+      # ADVANCED: Serve static assets
+      # default: true
+    assets: null
+      # Access control and user management method
+      # enum [default, none]. default: default
+    auth: null
+      # This URI will prefix all of Flood's HTTP requests
+      # default: /
+    baseuri: null
+      # ADVANCED: How often (in ms) Flood will request the torrent list
+      # default: 2000
+    clientpoll: null
+      # ADVANCED: How often (in ms) Flood will request the torrent list when
+      # no user is present. default: 900000
+    clientpollidle: null
+      # ADVANCED: Interval between database purge
+      # default: 3600000
+    dbclean: null
+      # The host that Flood should listen for web connections on
+      # Do not change this, the port is mapped by podman. default: 127.0.0.1
+    host: null
+      # ADVANCED: Number of records of torrent download and upload speeds
+      # default: 30
+    maxhistorystates: null
+      # The port that Flood should listen for web connections on
+      # default: 3000 (7004 for this formula)
+    port: 7004
+      # When auth=none: Host of rTorrent's SCGI interface
+    rthost: null
+      # When auth=none: Port of rTorrent's SCGI interface
+    rtport: null
+      # When auth=none: Path to rTorrent's SCGI unix socket
+    rtsocket: /config/.local/share/rtorrent/rtorrent.sock
+      # Where to store Flood's runtime files (eg. database)
+      # Do not change this. default: $HOME/.local/share/flood
+    rundir: null
+      # A unique secret, a random one will be generated if not provided
+    secret: null
+      # Enable SSL, key.pem and fullchain.pem needed in runtime directory
+      # default: false
+    ssl: null
+      # Depends on ssl: Absolute path to fullchain cert for SSL
+      # default: <rundir/fullchain.pem
+    sslcert: null
+      # Depends on ssl: Absolute path to private key for SSL
+      # default: <rundir>/key.pem
+    sslkey: null
+
+    # Those would be relevant for other Torrent clients when auth=none:
+    # dehost: null
+    # deport: null
+    # deuser: null
+    # depass: null
+    # qburl: null
+    # qbuser: null
+    # qbpass: null
+    # trurl: null
+    # truser: null
+    # trpass: null
+
+  lookup:
+    rootgroup: root
+    compose:
+      create_pod: null
+      pod_args: null
+      project_name: rtorrent
+      remove_orphans: true
+      service:
+        container_prefix: null
+        ephemeral: true
+        pod_prefix: null
+        restart_policy: on-failure
+        separator: null
+        stop_timeout: null
+    paths:
+      base: /opt/containers/rtorrent
+      compose: docker-compose.yml
+      config_rtorrent: rtorrent.env
+      config_flood: flood.env
+      data: data
+      downloads: downloads
+      watch: watch
+    user:
+      groups: []
+      home: null
+      name: rtorrent
+      shell: /usr/sbin/nologin
+      uid: null
+      gid: null
+    containers:
+      flood:
+        image: docker.io/jesec/flood:latest
+      rtorrent:
+        image: docker.io/jesec/rtorrent:latest
+    media_group:
+      gid: 3414
+      name: mediarr
+
+  tofs:
+      # The files_switch key serves as a selector for alternative
+      # directories under the formula files directory. See TOFS pattern
+      # doc for more info.
+      # Note: Any value not evaluated by `config.get` will be used literally.
+      # This can be used to set custom paths, as many levels deep as required.
+    files_switch:
+      - any/path/can/be/used/here
+      - id
+      - roles
+      - osfinger
+      - os
+      - os_family
+
+      # All aspects of path/file resolution are customisable using the options below.
+      # This is unnecessary in most cases; there are sensible defaults.
+      # Default path: salt://< path_prefix >/< dirs.files >/< dirs.default >
+      # I.e.: salt://rtorrent/files/default
+      # path_prefix: template_alt
+      # dirs:
+      #   files: files_alt
+      #   default: default_alt
+      # The entries under `source_files` are prepended to the default source files
+      # given for the state
+    source_files:
+      rTorrent compose file is managed:
+        - docker-compose_alt.yml
+        - docker-compose_alt.yml.j2
+      rtorrent environment file is managed:
+        - rtorrent_alt.env
+        - rtorrent_alt.env.j2
+      flood environment file is managed:
+        - flood_alt.env
+        - flood_alt.env.j2
+      rTorrent config file is managed:
+        - rtorrent_alt.rc
+        - rtorrent_alt.rc.j2

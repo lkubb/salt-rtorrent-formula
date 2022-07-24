@@ -1,0 +1,66 @@
+{#- -*- coding: utf-8 -*- #}
+{#- vim: ft=jinja #}
+
+{#-
+    Convenience: Make relative paths absolute.
+-#}
+
+{%- set base_path = mapdata.lookup.paths.base %}
+{%- for path, val in mapdata.lookup.paths.items() %}
+  {%- if val is string and not val.startswith("/") %}
+    {%- do mapdata.lookup.paths.update({path: base_path | path_join(val)}) %}
+  {%- endif %}
+{%- endfor %}
+
+{%- if not mapdata.lookup.user.home %}
+  {%- do mapdata.lookup.user.update({"home": base_path}) %}
+{%- endif %}
+
+
+{#-
+    Convenience: Make sure container pgid is the same as gid when
+    dedicated media group is in use.
+-#}
+
+{%- if mapdata.container.pgid is none and mapdata.lookup.media_group.gid is not none %}
+  {%- do mapdata.container.update({"pgid": mapdata.lookup.media_group.gid}) %}
+{%- endif %}
+
+
+{#-
+    If userns_keep_id is in use, it has to be passed to the pod if pods
+    are in use.
+-#}
+
+{%- if mapdata.container.userns_keep_id and mapdata.install.rootless %}
+  {%- if mapdata.lookup.compose.create_pod is not false %}
+    {%- do mapdata | append_dict_key_value("lookup:compose:pod_args", {"userns": "keep-id"}) %}
+  {%- endif %}
+{%- endif %}
+
+
+{#-
+    Flood setup for XMLRPC.
+-#}
+
+{%- if not mapdata.config.unix_socket %}
+  {%- do mapdata.flood.update({
+            "rtsocket": null,
+            "rthost": "rtorrent",
+            "rtport": 5000
+      }) %}
+{%- endif %}
+
+
+{#-
+    Flood setup for allowed download paths.
+-#}
+
+{%- if mapdata.flood.allowedpath is none %}
+  {%- if mapdata.lookup.paths.downloads is mapping %}
+    {%- set dl_path = mapdata.lookup.paths.downloads.values() | first %}
+  {%- else %}
+    {%- set dl_path = "/downloads" %}
+  {%- endif %}
+  {%- do mapdata.flood.update({"allowedpath": [dl_path]}) %}
+{%- endif %}

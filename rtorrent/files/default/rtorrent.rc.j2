@@ -1,0 +1,123 @@
+## The following environment variables are used:
+################################################
+# RTORRENT_DIR_DOWNLOAD     – default directory for downloads
+# RTORRENT_UMASK            – umask of the rtorrent process
+# RTORRENT_PORT_RANGE_START – listening port range start
+# RTORRENT_PORT_RANGE_END   – listening port range end
+# RTORRENT_PORT_RANDOM      – whether to randomly assign listening ports
+# RTORRENT_TRACKERS_UDP     - whether to enable UDP trackers (yes, no)
+# RTORRENT_DHT_MODE         - enable/disable DHT (auto, on, off, disable)
+# RTORRENT_DHT_PORT         - DHT port (UDP)
+# RTORRENT_PEER_EXCHANGE    - enable/disable Peer Exchange protocol (yes, no)
+# RTORRENT_MIN_PEERS_DL     - minimum peers when downloading
+# RTORRENT_MAX_PEERS_DL     - maximum peers when downloading
+# RTORRENT_MIN_PEERS_SEED   - minimum peers when seeding
+# RTORRENT_MAX_PEERS_SEED   - maximum peers when seeding
+# RTORRENT_MAX_DL_SLOTS     - maximum number of download slots per torrent
+# RTORRENT_MAX_UL_SLOTS     - maximum number of upload slots per torrent
+# RTORRENT_MAX_DL_SLOTS_GL  - maximum number of global download slots
+# RTORRENT_MAX_UL_SLOTS_GL  - maximum number of global upload slots
+# RTORRENT_MAX_XMLRPC       - maximum size of XMLRPC queries
+# RTORRENT_LISTEN_SCGI      - SCGI listen directive
+
+## rTorrent runtime directories
+method.insert = cfg.basedir,  private|const|string, (cat,(fs.homedir),"/.local/share/rtorrent/")
+method.insert = cfg.download, private|const|string, (system.env, RTORRENT_DIR_DOWNLOAD)
+method.insert = cfg.logs,     private|const|string, (cat,(cfg.basedir),"log/")
+# method.insert = cfg.logfile,  private|const|string, (cat,(cfg.logs),"rtorrent-",(system.time),".log")
+method.insert = cfg.logfile,  private|const|string, (cat,"/dev/stdout")
+method.insert = cfg.session,  private|const|string, (cat,(cfg.basedir),".session/")
+method.insert = cfg.watch,    private|const|string, (cat,(cfg.basedir),"watch/")
+
+## other variables
+method.insert = cfg.umask,    private|const|string, (system.env, RTORRENT_UMASK)
+method.insert = cfg.pr_start, private|const|string, (system.env, RTORRENT_PORT_RANGE_START)
+method.insert = cfg.pr_end,   private|const|string, (system.env, RTORRENT_PORT_RANGE_END)
+method.insert = cfg.prt_rand, private|const|bool,   (system.env, RTORRENT_PORT_RANDOM)
+method.insert = cfg.udp_trk,  private|const|bool,   (system.env, RTORRENT_TRACKERS_UDP)
+method.insert = cfg.dht_mode, private|const|string, (system.env, RTORRENT_DHT_MODE)
+method.insert = cfg.dht_port, private|const|string, (system.env, RTORRENT_DHT_PORT)
+method.insert = cfg.pex_mode, private|const|bool,   (system.env, RTORRENT_PEER_EXCHANGE)
+method.insert = cfg.min_pdl,  private|const|value,  (system.env, RTORRENT_MIN_PEERS_DL)
+method.insert = cfg.max_pdl,  private|const|value,  (system.env, RTORRENT_MAX_PEERS_DL)
+method.insert = cfg.min_ps,   private|const|value,  (system.env, RTORRENT_MIN_PEERS_SEED)
+method.insert = cfg.max_ps,   private|const|value,  (system.env, RTORRENT_MAX_PEERS_SEED)
+method.insert = cfg.max_dls,  private|const|value,  (system.env, RTORRENT_MAX_DL_SLOTS)
+method.insert = cfg.max_uls,  private|const|value,  (system.env, RTORRENT_MAX_UL_SLOTS)
+method.insert = cfg.max_gdls, private|const|value,  (system.env, RTORRENT_MAX_DL_SLOTS_GL)
+method.insert = cfg.max_guls, private|const|value,  (system.env, RTORRENT_MAX_UL_SLOTS_GL)
+method.insert = cfg.max_xmls, private|const|string, (system.env, RTORRENT_MAX_XMLRPC)
+method.insert = cfg.scgi_lst, private|const|string, (system.env, RTORRENT_LISTEN_SCGI)
+
+## Create directories if absent
+fs.mkdir.recursive = (cat,(cfg.basedir))
+fs.mkdir.recursive = (cat,(cfg.download))
+fs.mkdir.recursive = (cat,(cfg.logs))
+fs.mkdir.recursive = (cat,(cfg.session))
+fs.mkdir.recursive = (cat,(cfg.watch))
+fs.mkdir = (cat,(cfg.watch),"/load")
+fs.mkdir = (cat,(cfg.watch),"/start")
+
+### Drop to "$(cfg.watch)/load" to add torrent
+schedule2 = watch_load, 11, 10, ((load.verbose, (cat, (cfg.watch), "load/*.torrent")))
+
+## Drop to "$(cfg.watch)/start" to add torrent and start downloading
+schedule2 = watch_start, 10, 10, ((load.start_verbose, (cat, (cfg.watch), "start/*.torrent")))
+
+## Base settings
+network.max_open_files.set = 600
+network.max_open_sockets.set = 300
+# pieces.memory.max.set = 1800M
+session.path.set = (cat, (cfg.session))
+directory.default.set = (cat, (cfg.download))
+system.umask.set = (cat, (cfg.umask))
+system.cwd.set = (directory.default)
+
+## Use unix socket (comment if you're using the following port approach)
+## rootless podman had problems: Could not prepare socket for listening: Address in use
+network.scgi.open_local = (cat,(cfg.basedir),"/rtorrent.sock")
+
+## Listen to port 5000 (socket doesn't work with gVisor)
+#scgi_port=(cat,(cfg.scgi_lst))
+
+## Run the rTorrent process as a daemon in the background
+system.daemon.set = true
+
+## There is no point in using lock file in a docker container since it will only
+## give you major headaches if the process dies unexpectedly.
+## Moreover, be sure to not use the same session volume with more than one container.
+session.use_lock.set = no
+
+## Logging configuration
+log.open_file = "log", (cfg.logfile)
+log.add_output = "info", "log"
+log.add_output = "torrent_info", "log"
+
+## Custom configuration
+encoding.add = UTF-8
+pieces.hash.on_completion.set = no
+# https://github.com/rakshasa/rtorrent/issues/182
+# https://github.com/rakshasa/rtorrent/issues/602
+# protocol.encryption.set = allow_incoming, try_outgoing, enable_retry
+protocol.encryption.set = allow_incoming, try_outgoing
+
+## Network configuration
+network.port_range.set = (cat,(cfg.pr_start),"-",(cfg.pr_end))
+network.port_random.set = (cfg.prt_rand)
+trackers.use_udp.set = (cfg.udp_trk)
+dht.mode.set = (cat,(cfg.dht_mode))
+dht.port.set = (cat,(cfg.dht_port))
+protocol.pex.set = (cfg.pex_mode)
+
+## Resource limits
+throttle.min_peers.normal.set = (cat,(cfg.min_pdl))
+throttle.max_peers.normal.set = (cat,(cfg.max_pdl))
+throttle.min_peers.seed.set = (cat,(cfg.min_ps))
+throttle.max_peers.seed.set = (cat,(cfg.max_ps))
+throttle.max_downloads.set = (cat,(cfg.max_dls))
+throttle.max_uploads.set = (cat,(cfg.max_uls))
+throttle.max_downloads.global.set = (cat,(cfg.max_gdls))
+throttle.max_uploads.global.set = (cat,(cfg.max_guls))
+
+## XMLRPC configuration
+network.xmlrpc.size_limit.set = (cat,(cfg.max_xmls))
