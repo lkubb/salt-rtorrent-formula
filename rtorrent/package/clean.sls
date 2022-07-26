@@ -43,6 +43,9 @@ rTorrent user account is absent:
     - purge: {{ rtorrent.install.remove_all_data_for_sure }}
     - require:
       - rTorrent is absent
+    - retry:
+        attempts: 5
+        interval: 2
 
 {%- if rtorrent.install.remove_all_data_for_sure %}
 

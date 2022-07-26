@@ -32,6 +32,8 @@ rTorrent user session is initialized at boot:
   compose.lingering_managed:
     - name: {{ rtorrent.lookup.user.name }}
     - enable: {{ rtorrent.install.rootless }}
+    - require:
+      - user: {{ rtorrent.lookup.user.name }}
 
 rTorrent paths are present:
   file.directory:
