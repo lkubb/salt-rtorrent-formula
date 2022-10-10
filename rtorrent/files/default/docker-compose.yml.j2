@@ -24,6 +24,11 @@ services:
     ports:
       - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}
       - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}/udp
+{%- if rtorrent.install.autoupdate %}
+    labels:
+      - io.containers.autoupdate=registry
+{%- endif %}
+
   flood:
     image: {{ rtorrent.lookup.containers.flood.image }}
     hostname: flood
@@ -46,3 +51,7 @@ services:
       - ALL
     ports:
       - {{ rtorrent.flood.port }}:{{ rtorrent.flood.port }}
+{%- if rtorrent.install.autoupdate %}
+    labels:
+      - io.containers.autoupdate=registry
+{%- endif %}

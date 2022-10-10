@@ -8,6 +8,18 @@
 include:
   - {{ sls_config_clean }}
 
+{%- if rtorrent.install.autoupdate_service %}
+
+Podman autoupdate service is disabled for rTorrent:
+{%-   if rtorrent.install.rootless %}
+  compose.systemd_service_disabled:
+    - user: {{ rtorrent.lookup.user.name }}
+{%-   else %}
+  service.disabled:
+{%-   endif %}
+    - name: podman-auto-update.timer
+{%- endif %}
+
 rTorrent is absent:
   compose.removed:
     - name: {{ rtorrent.lookup.paths.compose }}

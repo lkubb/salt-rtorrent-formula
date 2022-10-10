@@ -94,3 +94,15 @@ rTorrent is installed:
     - require:
       - user: {{ rtorrent.lookup.user.name }}
 {%- endif %}
+
+{%- if rtorrent.install.autoupdate_service is not none %}
+
+Podman autoupdate service is managed for rTorrent:
+{%-   if rtorrent.install.rootless %}
+  compose.systemd_service_{{ "enabled" if rtorrent.install.autoupdate_service else "disabled" }}:
+    - user: {{ rtorrent.lookup.user.name }}
+{%-   else %}
+  service.{{ "enabled" if rtorrent.install.autoupdate_service else "disabled" }}:
+{%-   endif %}
+    - name: podman-auto-update.timer
+{%- endif %}
