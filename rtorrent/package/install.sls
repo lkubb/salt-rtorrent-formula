@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
+{%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as rtorrent with context %}
 {%- from tplroot ~ "/libtofs.jinja" import files_switch with context %}
 
@@ -50,11 +49,28 @@ rTorrent paths are present:
     - require:
       - user: {{ rtorrent.lookup.user.name }}
 
+{%- if rtorrent.install.podman_api %}
+
+rTorrent podman API is enabled:
+  compose.systemd_service_enabled:
+    - name: podman
+    - user: {{ rtorrent.lookup.user.name }}
+    - require:
+      - rTorrent user session is initialized at boot
+
+rTorrent podman API is available:
+  compose.systemd_service_running:
+    - name: podman
+    - user: {{ rtorrent.lookup.user.name }}
+    - require:
+      - rTorrent user session is initialized at boot
+{%- endif %}
+
 rTorrent compose file is managed:
   file.managed:
     - name: {{ rtorrent.lookup.paths.compose }}
-    - source: {{ files_switch(['docker-compose.yml', 'docker-compose.yml.j2'],
-                              lookup='rTorrent compose file is present'
+    - source: {{ files_switch(["docker-compose.yml", "docker-compose.yml.j2"],
+                              lookup="rTorrent compose file is present"
                  )
               }}
     - mode: '0644'

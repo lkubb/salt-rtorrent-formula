@@ -1,8 +1,14 @@
-# -*- coding: utf-8 -*-
 # vim: ft=sls
 
-{%- set tplroot = tpldir.split('/')[0] %}
-{%- set sls_config_clean = tplroot ~ '.config.clean' %}
+{#-
+    Removes the rtorrent, flood containers
+    and the corresponding user account and service units.
+    Has a depency on `rtorrent.config.clean`_.
+    If ``remove_all_data_for_sure`` was set, also removes all data.
+#}
+
+{%- set tplroot = tpldir.split("/")[0] %}
+{%- set sls_config_clean = tplroot ~ ".config.clean" %}
 {%- from tplroot ~ "/map.jinja" import mapdata as rtorrent with context %}
 
 include:
@@ -40,6 +46,25 @@ rTorrent compose file is absent:
     - name: {{ rtorrent.lookup.paths.compose }}
     - require:
       - rTorrent is absent
+
+{%- if rtorrent.install.podman_api %}
+
+rTorrent podman API is unavailable:
+  compose.systemd_service_dead:
+    - name: podman
+    - user: {{ rtorrent.lookup.user.name }}
+    - onlyif:
+      - fun: user.info
+        name: {{ rtorrent.lookup.user.name }}
+
+rTorrent podman API is disabled:
+  compose.systemd_service_disabled:
+    - name: podman
+    - user: {{ rtorrent.lookup.user.name }}
+    - onlyif:
+      - fun: user.info
+        name: {{ rtorrent.lookup.user.name }}
+{%- endif %}
 
 rTorrent user session is not initialized at boot:
   compose.lingering_managed:
