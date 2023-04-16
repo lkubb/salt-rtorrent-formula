@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/lkubb/salt-template-formula-compose",
-  "commit": "249eb39f6241fe5718691b21f7e7d82b962c8aa3",
+  "commit": "796b2c50d2796055ff7b66d17bca6f9ded64f40e",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -21,7 +21,7 @@
       "project_name": "rtorrent",
       "containers": "rtorrent,flood",
       "git_username": "lkubb",
-      "_lookup": {
+      "lookup": {
         "containers": {
           "flood": {
             "image": "docker.io/jesec/flood:latest"
@@ -40,7 +40,7 @@
           "watch": "watch"
         }
       },
-      "_settings": {
+      "settings": {
         "config": {
           "port": 49999,
           "umask": "0002",

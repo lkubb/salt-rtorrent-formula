@@ -51,7 +51,7 @@ rTorrent compose file is absent:
 
 rTorrent podman API is unavailable:
   compose.systemd_service_dead:
-    - name: podman
+    - name: podman.socket
     - user: {{ rtorrent.lookup.user.name }}
     - onlyif:
       - fun: user.info
@@ -59,7 +59,7 @@ rTorrent podman API is unavailable:
 
 rTorrent podman API is disabled:
   compose.systemd_service_disabled:
-    - name: podman
+    - name: podman.socket
     - user: {{ rtorrent.lookup.user.name }}
     - onlyif:
       - fun: user.info

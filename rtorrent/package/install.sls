@@ -53,14 +53,14 @@ rTorrent paths are present:
 
 rTorrent podman API is enabled:
   compose.systemd_service_enabled:
-    - name: podman
+    - name: podman.socket
     - user: {{ rtorrent.lookup.user.name }}
     - require:
       - rTorrent user session is initialized at boot
 
 rTorrent podman API is available:
   compose.systemd_service_running:
-    - name: podman
+    - name: podman.socket
     - user: {{ rtorrent.lookup.user.name }}
     - require:
       - rTorrent user session is initialized at boot
