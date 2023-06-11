@@ -2,7 +2,7 @@
 
 {%- set tplroot = tpldir.split("/")[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as rtorrent with context %}
-{%- from tplroot ~ "/libtofs.jinja" import files_switch with context %}
+{%- from tplroot ~ "/libtofsstack.jinja" import files_switch with context %}
 
 rTorrent user account is present:
   user.present:
@@ -69,14 +69,16 @@ rTorrent podman API is available:
 rTorrent compose file is managed:
   file.managed:
     - name: {{ rtorrent.lookup.paths.compose }}
-    - source: {{ files_switch(["docker-compose.yml", "docker-compose.yml.j2"],
-                              lookup="rTorrent compose file is present"
+    - source: {{ files_switch(
+                    ["docker-compose.yml", "docker-compose.yml.j2"],
+                    config=rtorrent,
+                    lookup="rTorrent compose file is present",
                  )
               }}
     - mode: '0644'
     - user: root
     - group: {{ rtorrent.lookup.rootgroup }}
-    - makedirs: True
+    - makedirs: true
     - template: jinja
     - makedirs: true
     - context:
