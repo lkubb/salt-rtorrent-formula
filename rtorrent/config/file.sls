@@ -34,7 +34,7 @@ rTorrent environment files are managed:
     - template: jinja
     - require:
       - user: {{ rtorrent.lookup.user.name }}
-    - watch_in:
+    - require_in:
       - rTorrent is installed
     - context:
         rtorrent: {{ rtorrent | json }}
@@ -55,7 +55,5 @@ rTorrent config file is managed:
     - template: jinja
     - require:
       - user: {{ rtorrent.lookup.user.name }}
-    - watch_in:
-      - rTorrent is installed
     - context:
         rtorrent: {{ rtorrent | json }}
