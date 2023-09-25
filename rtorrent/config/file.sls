@@ -30,7 +30,7 @@ rTorrent environment files are managed:
     - mode: '0640'
     - user: root
     - group: __slot__:salt:user.primary_group({{ rtorrent.lookup.user.name }})
-    - makedirs: True
+    - makedirs: true
     - template: jinja
     - require:
       - user: {{ rtorrent.lookup.user.name }}
@@ -51,7 +51,7 @@ rTorrent config file is managed:
     - mode: '0640'
     - user: root
     - group: __slot__:salt:user.primary_group({{ rtorrent.lookup.user.name }})
-    - makedirs: True
+    - makedirs: true
     - template: jinja
     - require:
       - user: {{ rtorrent.lookup.user.name }}
