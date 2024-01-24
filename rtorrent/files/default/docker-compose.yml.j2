@@ -1,3 +1,9 @@
+{%- set ports = [] -%}
+{%- do ports.append(rtorrent.config.port) -%}
+{%- set port = rtorrent.config.port -%}
+{%- if rtorrent.config.dht_port not in ports -%}
+{%-   do ports.append(rtorrent.config.dht_port) -%}
+{%- endif -%}
 ---
 version: '2.1'
 services:
@@ -13,7 +19,12 @@ services:
 {%- endif %}
       # @TODO
       - {{ rtorrent.lookup.paths.watch }}:/watch
-    user: {{ rtorrent.container.puid or salt["user.info"](rtorrent.lookup.user.name).uid }}:{{ rtorrent.container.pgid or salt["user.info"](rtorrent.lookup.user.name).gid }}
+    user: {{    rtorrent.container.puid or
+                salt["user.info"](rtorrent.lookup.user.name).uid
+              }}:{{
+                rtorrent.container.pgid or
+                salt["user.info"](rtorrent.lookup.user.name).gid
+              }}
     env_file:
       - {{ rtorrent.lookup.paths.config_rtorrent }}
     read_only: true
@@ -22,8 +33,10 @@ services:
     cap_drop:
       - ALL
     ports:
-      - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}
-      - {{ rtorrent.config.port }}:{{ rtorrent.config.port }}/udp
+{%- for port in ports %}
+      - {{ port }}:{{ port }}
+      - {{ port }}:{{ port }}/udp
+{%- endfor %}
 {%- if rtorrent.install.autoupdate %}
     labels:
       - io.containers.autoupdate=registry
@@ -39,7 +52,12 @@ services:
 {%- else %}
       - {{ rtorrent.lookup.paths.downloads }}:/downloads:rw,nodev,noexec,nosuid
 {%- endif %}
-    user: {{ rtorrent.container.puid or salt["user.info"](rtorrent.lookup.user.name).uid }}:{{ rtorrent.container.pgid or salt["user.info"](rtorrent.lookup.user.name).gid }}
+    user: {{    rtorrent.container.puid or
+                salt["user.info"](rtorrent.lookup.user.name).uid
+              }}:{{
+                rtorrent.container.pgid or
+                salt["user.info"](rtorrent.lookup.user.name).gid
+              }}
     depends_on:
       - rtorrent
     env_file:
