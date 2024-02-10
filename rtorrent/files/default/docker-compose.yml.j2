@@ -1,9 +1,21 @@
-{%- set ports = [] -%}
-{%- do ports.append(rtorrent.config.port) -%}
-{%- set port = rtorrent.config.port -%}
-{%- if rtorrent.config.dht_port not in ports -%}
+{%- set ports = [rtorrent.config.port] if rtorrent.config.port else [] -%}
+{%- if rtorrent.config.dht_port and rtorrent.config.dht_port not in ports -%}
 {%-   do ports.append(rtorrent.config.dht_port) -%}
 {%- endif -%}
+
+{%- set is_netfs = {} %}
+{%- for path in ["data", "downloads", "watch"] %}
+{%-   set dirpath = rtorrent.lookup.paths[path] if path != "downloads" or rtorrent.lookup.paths[path] is not mapping else rtorrent.lookup.paths[path] | first %}
+{%-   do is_netfs.update({
+        path: salt["cmd.run_stdout"](
+          "df -P '{data}' | ".format(data=dirpath) ~
+          "awk 'BEGIN {e=1} $NF ~ /^\/.+/ { e=0 ; print $1 ; exit } END { exit e }'",
+          python_shell=true,
+        )
+      })
+%}
+{%- endfor -%}
+
 ---
 version: '2.1'
 services:
@@ -11,14 +23,15 @@ services:
     image: {{ rtorrent.lookup.containers.rtorrent.image }}
     hostname: rtorrent
     volumes:
-      - {{ rtorrent.lookup.paths.data }}:/config:rw,nodev,noexec,nosuid
+      - {{ rtorrent.lookup.paths.data }}:/config:rw,nodev,noexec,nosuid{%- if not is_netfs.data %},z{%- endif %}
 {%- if rtorrent.lookup.paths.downloads is mapping %}
-      - {{ rtorrent.lookup.paths.downloads | first }}:{{ rtorrent.lookup.paths.downloads.values() | first }}:rw,nodev,noexec,nosuid
+      - {{ rtorrent.lookup.paths.downloads | first }}:{{
+           rtorrent.lookup.paths.downloads.values() | first }}:rw,nodev,noexec,nosuid{%- if not is_netfs.downloads %},z{%- endif %}
 {%- else %}
-      - {{ rtorrent.lookup.paths.downloads }}:/downloads:rw,nodev,noexec,nosuid
+      - {{ rtorrent.lookup.paths.downloads }}:/downloads:rw,nodev,noexec,nosuid{%- if not is_netfs.downloads %},z{%- endif %}
 {%- endif %}
       # @TODO
-      - {{ rtorrent.lookup.paths.watch }}:/watch
+      - {{ rtorrent.lookup.paths.watch }}:/watch{%- if not is_netfs.watch %}:z{%- endif %}
     user: {{    rtorrent.container.puid or
                 salt["user.info"](rtorrent.lookup.user.name).uid
               }}:{{
