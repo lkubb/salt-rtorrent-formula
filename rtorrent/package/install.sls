@@ -26,6 +26,21 @@ rTorrent user account is present:
     - name: {{ rtorrent.lookup.media_group.name }}
     - gid: {{ rtorrent.lookup.media_group.gid }}
 {%- endif %}
+  file.append:
+    - names:
+      - {{ rtorrent.lookup.user.home | path_join(".bashrc") }}:
+        - text:
+          - export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          - export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+
+      - {{ rtorrent.lookup.user.home | path_join(".bash_profile") }}:
+        - text: |
+            if [ -f ~/.bashrc ]; then
+              . ~/.bashrc
+            fi
+
+    - require:
+      - user: {{ rtorrent.lookup.user.name }}
 
 rTorrent user session is initialized at boot:
   compose.lingering_managed:
